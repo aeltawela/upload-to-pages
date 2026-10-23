@@ -55,14 +55,14 @@ The date lasts through the end of that local day. The workflow runs daily and ca
 
 - Review every file before publishing. Stop if it contains personal, financial, health, employment, confidential, identifying, or unreadable content.
 - Use UUID links only for content approved for public access.
-- For password mode, encrypt every HTML file before upload. Never commit plaintext first; Git history keeps it.
+- For password mode, use a working HTTPS Pages URL, then encrypt every HTML file before upload. StatiCrypt needs a secure browser context. A user-chosen password opens in a masked local window; never commit plaintext first because Git history keeps it.
 - Do not include sensitive linked assets. A password on the HTML page does not protect other files.
 - Never put passwords in chat, shell arguments, URLs, repository files, or workflow secrets. Use the host's private password prompt or StatiCrypt's interactive terminal prompt. Share generated passwords separately from the link.
 - If the host cannot collect a user-chosen password privately, stop and ask the user to run encryption locally or choose another mode.
 
 ## Development
 
-The implementation stays small: one canonical `SKILL.md`, one optional Pages workflow, and one Python standard-library expiry script. There are no servers, databases, custom encryption, or per-harness copies.
+The implementation stays small: one canonical `SKILL.md`, one optional Pages workflow, one Python standard-library expiry script, and one local password prompt. There are no servers, databases, custom encryption, or per-harness copies.
 
 Run the checks locally:
 
