@@ -33,6 +33,14 @@ Or ask the chosen harness to install it for you:
 
 Once installed, ask: **“Share `./report.html` with a UUID link and expire it on 2026-11-30.”** The skill checks the content, prepares a copy, publishes it to your configured Pages repository, and verifies the live URL.
 
+## How to share an HTML report
+
+This short walkthrough uses sample content. It shows choosing the report, asking the skill to share it, reviewing the access mode, waiting for deployment, and copying the verified link.
+
+![Animated walkthrough: choose an HTML report, ask the skill to share it, review access, deploy to GitHub Pages, and copy the verified link.](assets/upload-walkthrough.gif)
+
+The UUID example is public and unlisted, not private. Password mode needs a working HTTPS Pages URL, and expiry is scheduled cleanup rather than immediate revocation.
+
 ## Set up a Pages repository
 
 Create or choose a repository for shared files, then:
