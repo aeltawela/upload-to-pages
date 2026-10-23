@@ -1,0 +1,23 @@
+name: Bug report
+description: Report a problem with the skill or expiry workflow.
+labels: [bug]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the result and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include safe, non-sensitive details only.
+    validations:
+      required: true
+  - type: input
+    id: harness
+    attributes:
+      label: Harness and version
+      placeholder: OpenCode, Claude Code, Qwen Code, or ChatGPT desktop

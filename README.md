@@ -1,60 +1,94 @@
 # Upload to Pages
 
-A small, portable Agent Skill for publishing ready-made HTML, reports, data, and static files with GitHub Pages. It supports unlisted UUID links for non-sensitive content, StatiCrypt-protected HTML, and date-based cleanup with one daily GitHub Actions workflow.
+**Share ready-made reports, HTML, data, and static files on GitHub Pages.** Choose an unlisted UUID link, password-protected HTML, or a date-based cleanup.
 
-## KISS design
+[![CI](https://github.com/aeltawela/upload-to-pages/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/aeltawela/upload-to-pages/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Agent Skill](https://img.shields.io/badge/Agent-Skill-6f42c1.svg)](https://agentskills.io/)
 
-- One canonical `SKILL.md`, installed unchanged for each supported agent.
-- One Pages workflow and one Python standard-library cleanup script.
-- No extra hosting service, database, custom encryption, or platform-specific wrappers.
+## Pick a sharing mode
 
-GitHub Pages is public hosting. UUID links are unlisted, not private. Expiry removes the current site folder after the scheduled job succeeds; it cannot remove Git history, cached copies, or downloads.
+| Mode | What the recipient gets | Use it for |
+| --- | --- | --- |
+| UUID link | A hard-to-guess URL to a public page | Non-sensitive content that is okay to publish |
+| Password | StatiCrypt-encrypted HTML and a password shared separately | An HTML page when the host can collect a password privately |
+| Expiry date | A page folder removed by the daily cleanup workflow after its date | Temporary links where delayed removal is acceptable |
 
-## Install the skill
+GitHub Pages is public hosting. A UUID link is unlisted, not private. StatiCrypt protects HTML only; linked CSV, PDF, image, or script files remain public. Expiry is cleanup, not immediate revocation: GitHub may delay scheduled jobs, and deletion cannot remove Git history, cached copies, or downloads.
 
-Copy or unzip the `skills/upload-to-pages` folder into the runtime's skill directory. Keep the folder name `upload-to-pages`.
+## Quick start
 
-### ChatGPT
+Install the skill for your user account with [Vercel Skills CLI](https://github.com/vercel-labs/skills). These commands install the same `SKILL.md` for each harness:
 
-In ChatGPT, open **Plugins → Skills → Create → Upload from your computer** and select a ZIP containing the top-level `upload-to-pages/` folder. Skills are available only on eligible ChatGPT plans and workspaces; workspace settings can disable uploads. If the session has no private password input or local terminal, use generated-password mode or run encryption locally.
+| Harness | Install command |
+| --- | --- |
+| ChatGPT desktop / Codex | `npx skills add aeltawela/upload-to-pages --skill upload-to-pages --agent codex --global --copy --yes` |
+| OpenCode | `npx skills add aeltawela/upload-to-pages --skill upload-to-pages --agent opencode --global --copy --yes` |
+| Claude Code | `npx skills add aeltawela/upload-to-pages --skill upload-to-pages --agent claude-code --global --copy --yes` |
+| Qwen Code | `npx skills add aeltawela/upload-to-pages --skill upload-to-pages --agent qwen-code --global --copy --yes` |
 
-### OpenCode
+Or ask the chosen harness to install it for you:
 
-Copy the folder to `~/.config/opencode/skills/upload-to-pages/`. OpenCode also recognizes `.agents/skills/` and `.claude/skills/` locations.
+> Install the `upload-to-pages` skill from `aeltawela/upload-to-pages` for this harness using the install command in this README. Install it for my user account, keep its name, and tell me the installed path. For ChatGPT desktop, install locally; do not upload it to chatgpt.com.
 
-### Claude
+Once installed, ask: **“Share `./report.html` with a UUID link and expire it on 2026-11-30.”** The skill checks the content, prepares a copy, publishes it to your configured Pages repository, and verifies the live URL.
 
-For Claude Code, copy the folder to `~/.claude/skills/upload-to-pages/`. Claude.ai also supports uploading or syncing skills when the feature is available to the account.
+## Set up a Pages repository
 
-### Qwen Code
+Create or choose a repository for shared files, then:
 
-Copy the folder to `~/.qwen/skills/upload-to-pages/`. Qwen Code can also load skills from configured skill paths.
+1. Copy [`pages-expiry.yml`](skills/upload-to-pages/templates/pages-expiry.yml) to `.github/workflows/pages.yml`.
+2. Copy [`expire_pages.py`](skills/upload-to-pages/scripts/expire_pages.py) to `scripts/expire_pages.py`.
+3. In **Settings → Pages → Build and deployment**, select **GitHub Actions**.
+4. Allow GitHub Actions to write to the default branch so expired share folders can be deleted.
+5. Use [`site-index.html`](skills/upload-to-pages/templates/site-index.html) as `site/index.html` if you need a root page. It does not list share links.
 
-The skill uses only the common `name`, `description`, and `license` frontmatter. It needs a GitHub connection or authenticated GitHub CLI for publishing; the available tools differ by host.
+Each share lives under `site/shares/<UUID>/`. For expiry, place an `expiry.json` in that folder:
 
-## Set up a share repository once
+```json
+{"expires_on":"2026-11-30","timezone":"Europe/Berlin"}
+```
 
-1. Add `skills/upload-to-pages/templates/pages-expiry.yml` as `.github/workflows/pages.yml`.
-2. Add `skills/upload-to-pages/scripts/expire_pages.py` as `scripts/expire_pages.py`.
-3. Configure **Settings → Pages → Build and deployment → Source → GitHub Actions**.
-4. Allow the workflow to write to the default branch so expired folders can be removed.
-5. If the site has no root page, copy `templates/site-index.html` to `site/index.html`. It does not list share links.
+The date lasts through the end of that local day. The workflow runs daily and can be started manually.
 
-Each share goes under `site/shares/<UUID>/`. An optional `expiry.json` in that folder contains only an expiry date and time zone. Run the cleanup workflow manually to check it before relying on the next daily run.
+## Safety rules
 
-## Run checks
+- Review every file before publishing. Stop if it contains personal, financial, health, employment, confidential, identifying, or unreadable content.
+- Use UUID links only for content approved for public access.
+- For password mode, encrypt every HTML file before upload. Never commit plaintext first; Git history keeps it.
+- Do not include sensitive linked assets. A password on the HTML page does not protect other files.
+- Never put passwords in chat, shell arguments, URLs, repository files, or workflow secrets. Use the host's private password prompt or StatiCrypt's interactive terminal prompt. Share generated passwords separately from the link.
+- If the host cannot collect a user-chosen password privately, stop and ask the user to run encryption locally or choose another mode.
+
+## Development
+
+The implementation stays small: one canonical `SKILL.md`, one optional Pages workflow, and one Python standard-library expiry script. There are no servers, databases, custom encryption, or per-harness copies.
+
+Run the checks locally:
 
 ```sh
 python3 -m unittest discover -s tests -v
+git diff --check
 ```
+
+CI runs these checks on every push and pull request. The configured [Pages repository](https://github.com/aeltawela/pages) is the owner's primary publishing space and intentionally does not list its shares.
+
+## Support
+
+Open a [bug report](https://github.com/aeltawela/upload-to-pages/issues/new?template=bug_report.yml) or [feature request](https://github.com/aeltawela/upload-to-pages/issues/new?template=feature_request.yml). Review the [security policy](SECURITY.md) before reporting a vulnerability.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
 
 ## References
 
 - [Agent Skills standard](https://agentskills.io/)
+- [Vercel Skills CLI](https://github.com/vercel-labs/skills)
+- [StatiCrypt](https://github.com/robinmoisson/staticrypt)
+- [GitHub Pages publishing](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+- [GitHub Actions schedule behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)
 - [Skills in ChatGPT](https://help.openai.com/en/articles/20001066-skills-in-chatgpt)
 - [Claude Code skills](https://code.claude.com/docs/en/skills)
 - [OpenCode skills](https://opencode.ai/docs/skills)
 - [Qwen Code skills](https://qwenlm.github.io/qwen-code-docs/en/users/features/skills/)
-- [StatiCrypt](https://github.com/robinmoisson/staticrypt)
-- [GitHub Pages publishing](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
-- [GitHub Actions schedule behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)

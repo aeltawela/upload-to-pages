@@ -33,6 +33,8 @@ class SkillPackageTests(unittest.TestCase):
             "workflow",
             "github connector",
             "gh",
+            "pause and explain the exposure before publishing",
+            "never use uuid-only sharing for sensitive content",
         ]
         for phrase in required:
             with self.subTest(phrase=phrase):
@@ -56,6 +58,26 @@ class SkillPackageTests(unittest.TestCase):
         for runtime in ("chatgpt", "claude", "opencode", "qwen"):
             with self.subTest(runtime=runtime):
                 self.assertIn(runtime, readme)
+
+    def test_readme_has_a_copy_paste_install_command_for_each_harness(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        for agent in ("codex", "opencode", "claude-code", "qwen-code"):
+            with self.subTest(agent=agent):
+                self.assertRegex(
+                    readme,
+                    rf"npx skills add aeltawela/upload-to-pages .*--agent {agent} .*--global",
+                )
+        self.assertIn("prompt", readme.lower())
+
+    def test_ci_runs_package_checks_on_push_and_pull_request(self) -> None:
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("push:", workflow)
+        self.assertIn("pull_request:", workflow)
+        self.assertIn("workflow_dispatch:", workflow)
+        self.assertIn("python -m unittest discover -s tests -v", workflow)
+        self.assertIn("git diff --check", workflow)
 
 
 if __name__ == "__main__":
