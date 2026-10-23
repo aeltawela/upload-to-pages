@@ -60,9 +60,11 @@ The date lasts through the end of that local day. The workflow runs daily and ca
 - Never put passwords in chat, shell arguments, URLs, repository files, or workflow secrets. Use the host's private password prompt or StatiCrypt's interactive terminal prompt. Share generated passwords separately from the link.
 - If the host cannot collect a user-chosen password privately, stop and ask the user to run encryption locally or choose another mode.
 
-## Development
+## KISS design
 
-The implementation stays small: one canonical `SKILL.md`, one optional Pages workflow, one Python standard-library expiry script, and one local password prompt. There are no servers, databases, custom encryption, or per-harness copies.
+The implementation stays small: one canonical `SKILL.md`, one optional Pages workflow, one Python standard-library expiry script, and one local password prompt. No server, database, or custom encryption is needed, and every harness uses the same skill file.
+
+## Development
 
 Run the checks locally:
 

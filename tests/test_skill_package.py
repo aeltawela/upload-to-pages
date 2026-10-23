@@ -70,6 +70,11 @@ class SkillPackageTests(unittest.TestCase):
                 )
         self.assertIn("prompt", readme.lower())
 
+    def test_readme_states_the_kiss_design(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("## KISS design", readme)
+        self.assertIn("No server, database, or custom encryption", readme)
+
     def test_ci_runs_package_checks_on_push_and_pull_request(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
             encoding="utf-8"
